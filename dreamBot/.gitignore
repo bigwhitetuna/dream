@@ -1,0 +1,7 @@
+.env
+dreambot.log
+dreambot.db
+command_payload
+venv/
+__pycache__/
+dreamBot\__pycache__

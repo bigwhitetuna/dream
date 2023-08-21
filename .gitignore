@@ -1,0 +1,11 @@
+dream.db
+dreambot.db
+dreambot copy.db
+postgres-data/
+scratchpad.txt
+venv
+__pycache__/
+dreamBot\api\__pycache__
+data.sql
+data/
+.env

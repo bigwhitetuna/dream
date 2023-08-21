@@ -1,0 +1,82 @@
+.card {
+    position: relative; /* This makes the inner absolute positioning of .card-details work correctly. */
+    overflow: hidden; /* Ensures nothing spills outside the card. */
+}
+
+.card-details {
+    position: absolute; 
+    top: 0; 
+    left: 0;
+    right: 0; 
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: rgba(0,0,0,0.8); /* Semi-transparent black. */
+    color: white; /* Making text white for better readability on the dark background. */
+    opacity: 0;
+    transition: opacity 0.3s; /* Smooth transition. */
+}
+
+.card:hover .card-image {
+    transform: scale(1.1); /* Optional: Zooms in the image a bit on hover. */
+}
+
+.card:hover .card-details {
+    opacity: 1;
+}
+
+.user-avatar {
+    width: 60px; /* or whatever size you want */
+    height: 60px;
+    border-radius: 50%; /* This makes it circular */
+    margin-bottom: 10px; /* Add some space between the avatar and the username */
+}
+
+.username {
+    border-bottom: 2px solid #bebebe; /* Adjust the color and thickness as needed */
+    display: inline-block; 
+    margin-bottom: 10px; /* Adds some space between the line and the content below it */
+    padding-bottom: 10px; /* Adds some space between the text and the line */
+    width: calc(50%); /* Adjust this value accordingly */
+  }
+
+.date-display {
+    position: relative;
+    width: 100%;
+    margin-top: 30px; /* Adjust as needed to increase or decrease space */
+}
+
+.date-display::before {
+    content: ""; /* This is necessary for the pseudo-element to show */
+    display: block;
+    height: 2px; /* The thickness of the line */
+    width: calc(50%); /* Adjust to control the length of the line */
+    background: #bebebe; /* The color of the line, adjust as needed */
+    position: absolute;
+    top: -15px; /* Position the line 10px above the date element */
+    left: 50%; /* Centering the line horizontally */
+    transform: translateX(-50%); /* Ensuring perfect horizontal centering */
+}
+
+.favorite-icon {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    font-size: 1.5em;
+    cursor: pointer;
+}
+
+.favorited {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    font-size: 1.5rem;
+    cursor: pointer;
+    z-index: 10; /* to ensure it's above the image */
+}
+
+.card-image {
+    transition: transform 0.5s; /* Optional: Adds a zoom effect to image on hover. */
+}

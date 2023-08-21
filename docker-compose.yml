@@ -1,0 +1,41 @@
+version: '3'
+
+services:
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000" # If your API runs on port 8000
+    depends_on:
+      - db
+    environment:
+      - DATABASE_URL=postgresql://postgres:password@db:5432/postgres
+    volumes:
+      - ./api:/app/api
+      - ./database:/app/database
+
+  discordbot:
+    build:
+      context: ./dreamBot
+      dockerfile: Dockerfile
+    volumes:
+      - ./dreamBot:/app/dreamBot
+
+  webapp:
+    build: 
+      context: ./dreamWeb
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000" # Default React port
+
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: mysecretpassword
+      POSTGRES_DB: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - C:/Users/Houston/Desktop/Development/dream/postgres-data:/var/lib/postgresql/data
