@@ -102,6 +102,14 @@ async def dream(interaction: discord.Interaction,
             # add buttons 
             button1 = Button(label="Favorite", style=discord.ButtonStyle.blurple, custom_id="favorite", emoji="❤️")
             button2 = Button(label="Website", style=discord.ButtonStyle.link, url="https://google.com/")
+
+            async def button_callback(interaction: discord.Interaction):
+                if interaction.id == "favorite":
+                    await interaction.response.send_message("You favorited this image!", ephemeral=True)
+                else:
+                    await interaction.response.send_message("You clicked a button!", ephemeral=True)
+            button1.callback = button_callback
+
             view = View()
             view.add_item(button1)
             view.add_item(button2)
