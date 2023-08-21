@@ -4,4 +4,4 @@
 export PYTHONPATH="${PYTHONPATH}:/app"
 
 # Start the FastAPI application in the foreground
-hupper -m dreamBot.main
+hupper -m python3 -u dreamBot.main
