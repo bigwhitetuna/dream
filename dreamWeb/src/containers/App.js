@@ -13,12 +13,11 @@ class App extends Component {
         this.state = {
             data: [], // holds all data fetched from the api
             filteredData: [], // holds the data filtered by the search field
-            searchfield: '' // holds current value of the search field
+            searchfield: '', // holds current value of the search field
         }
         // Throttle the search function to only execute once every X milliseconds
         this.onSearchChange = throttle(this.onSearchChange.bind(this), 300);
     }
-
     // Fetch data from the api
     fetchData = () => {
         axios.get('http://127.0.0.1:8000/api/data')
@@ -75,13 +74,13 @@ class App extends Component {
                         <SearchBox searchChange={this.onSearchChange}/>
                     </div>
                 </div>
-            <div> 
-                <ErrorBoundary>
-                    {filteredData.length 
-                        ? <CardList data={filteredData} /> 
-                        : <h3>No results found</h3>}
-                </ErrorBoundary>
-            </div>
+                <div> 
+                    <ErrorBoundary>
+                        {filteredData.length 
+                            ? <CardList data={filteredData} openModal={this.openModal}/> 
+                            : <h3>No results found</h3>}
+                    </ErrorBoundary>
+                </div>
             </div>
         );
     }

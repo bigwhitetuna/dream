@@ -10,7 +10,8 @@ const Card = ({
   imagination,
   style,
   imageUrl,
-  timestamp }) => {
+  timestamp,
+  }) => {
 
     const [isFavorited, setIsFavorited] = useState(false);
 
@@ -28,8 +29,8 @@ const Card = ({
 
     // render the component
     return (
-        <div className='card tc bg-light-green dib br3 pa3 ma2 bw2 shadow-5 w-100 w-33-l'>
-            <img src={imageUrl} alt={prompt} className='card-image w-100 db center br3 br--top' loading="lazy"/>
+        <div className='card tc dib br3 ma2 bw2 shadow-5 w-100'>
+            <img src={imageUrl} alt={prompt} className='card-image w-100 h-100 db center br3 br--top' loading="lazy"/>
             <div className='card-details'>
               <img src={userAvatar} alt="User Avatar" className='user-avatar'/>
               <p className='username'><strong>{userName}</strong></p>

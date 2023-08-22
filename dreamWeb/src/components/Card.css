@@ -20,7 +20,7 @@
 }
 
 .card:hover .card-image {
-    transform: scale(1.1); /* Optional: Zooms in the image a bit on hover. */
+    transform: scale(1.1);
 }
 
 .card:hover .card-details {
@@ -78,5 +78,7 @@
 }
 
 .card-image {
+    width: 100%;
+    height: 100%;
     transition: transform 0.5s; /* Optional: Adds a zoom effect to image on hover. */
 }
