@@ -28,7 +28,7 @@ const Card = ({
 
     // render the component
     return (
-        <div className='card tc dib br3 pa3 ma2 bw2 shadow-5 w-100 w-33-l'>
+        <div className='card tc dib br3 ma2 bw2 shadow-5 w-100'>
             <img src={imageUrl} alt={prompt} className='card-image w-100 h-100 db center br3 br--top' loading="lazy"/>
             <div className='card-details'>
               <img src={userAvatar} alt="User Avatar" className='user-avatar'/>

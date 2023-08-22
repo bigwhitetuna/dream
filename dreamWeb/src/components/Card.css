@@ -78,5 +78,7 @@
 }
 
 .card-image {
+    width: 100%;
+    height: 100%;
     transition: transform 0.5s; /* Optional: Adds a zoom effect to image on hover. */
 }
