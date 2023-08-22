@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# debuffer prints for development
+export PYTHONUNBUFFERED=1
+
 # Add current directory to Python path
 export PYTHONPATH="${PYTHONPATH}:/app"
 

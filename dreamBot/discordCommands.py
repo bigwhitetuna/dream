@@ -10,6 +10,11 @@ from dreamBot.utils.getUserInfo import getUserInfo
 from dreamBot.utils.imageRequest import imageRequest
 from dreamBot.utils.storeRequest import store_request
 from dreamBot.utils.getLeaderboardData import get_leaderboard_data
+from dreamBot.utils.storeFavorite import storeFavorite
+
+import logging
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # set intents for discord bot
 intents = discord.Intents(
@@ -30,6 +35,17 @@ bot = commands.Bot(command_prefix='/', intents=intents)
 async def on_ready():
     # friendly message to see bot is running
     print(f'\nDream bot is up and running!\n') 
+
+class FavoriteButton(Button):
+    def __init__(self, dream_id=None, label=None):
+        super().__init__(label="Favorite", style=discord.ButtonStyle.blurple, custom_id="temporary_favorite", emoji="❤️")
+        self.dream_id = dream_id
+
+    async def callback(self, interaction: discord.Interaction):
+        dream_id = self.dream_id
+        await storeFavorite(interaction, dream_id)
+        await interaction.response.send_message("You favorited this image!", ephemeral=True, delete_after=10)
+
 
 ### Dream Command ###
 @bot.tree.command(name='dream', description='Generate an image from a prompt.')
@@ -92,7 +108,7 @@ async def dream(interaction: discord.Interaction,
             print(e)
         
         #only send response if image data is available
-        if image_data:
+        if image_data:            
             # create the embed from the response
             embed = discord.Embed(description=f'**Prompt:** {prompt} \n **Negative Prompt:** {negativePrompt} \n**Imagination #:** {cfg} \n**Style:** {style}')
             file = discord.File(io.BytesIO(image_data), filename='image.png')
@@ -100,20 +116,13 @@ async def dream(interaction: discord.Interaction,
             embed.set_footer(text=f'Requested by {nickname}', icon_url=user['avatar'])
 
             # add buttons 
-            button1 = Button(label="Favorite", style=discord.ButtonStyle.blurple, custom_id="favorite", emoji="❤️")
+            favbutton = FavoriteButton(user)
             button2 = Button(label="Website", style=discord.ButtonStyle.link, url="https://google.com/")
-
-            async def button_callback(interaction: discord.Interaction):
-                if interaction.id == "favorite":
-                    await interaction.response.send_message("You favorited this image!", ephemeral=True)
-                else:
-                    await interaction.response.send_message("You clicked a button!", ephemeral=True)
-            button1.callback = button_callback
-
             view = View()
-            view.add_item(button1)
+            view.add_item(favbutton)
             view.add_item(button2)
-            # final response to channel and user with image
+
+            # respond to channel and user with image embed
             message = await interaction.followup.send(
                 content=f"Here is your image {user['mention']}!", 
                 embed=embed,
@@ -121,15 +130,23 @@ async def dream(interaction: discord.Interaction,
                 view=view,
                 ephemeral=False
                 )
-  
+            
             image_url = message.embeds[0].image.url
+
             userDict = {
                 'id': user['id'],
                 'name': nickname,
                 'avatar': user['avatar'].url
             }
-            # update db with user request
-            await store_request(userDict, prompt, negativePrompt, cfg, style, image_url)
+
+            dream_id = await store_request(userDict, prompt, negativePrompt, cfg, style, image_url)
+
+            new_favbutton = FavoriteButton(dream_id, label="Favorite")
+            new_view = View()
+            new_view.add_item(new_favbutton)
+            new_view.add_item(button2)  # the other button you originally had
+
+            await message.edit(view=new_view)
 
     #######################################
     # Error handling
@@ -137,13 +154,12 @@ async def dream(interaction: discord.Interaction,
     ### Discord errors ###
     except (discord.Forbidden, discord.HTTPException, discord.NotFound, discord.RateLimited, discord.DiscordException) as e:
         await interaction.followup.send(content=f"There was an error with Discord. Error message: {e}.", ephemeral=True)
-        print(e)
+        logging.error(e)
     # Generic error handling
     except Exception as e:
         print(e)
         await interaction.followup.send(content=f"{user['mention']}, there was an error processing your request.", ephemeral=True)
-        import traceback
-        traceback.print_exc()
+        logging.error(e)
     
 
 ### Dream Leader ###
@@ -221,16 +237,3 @@ async def dreamhelp(interaction: discord.Interaction):
                                        , ephemeral=True)
     except Exception as e:
         print(e)
-
-### Credits Check ###
-# @bot.tree.command(name='dreamsync', description='Sync any new commands to discord')
-# @commands.has_any_role("Admins")
-# async def dreamsync(interaction: discord.Interaction):
-#     try:
-#         await interaction.response.defer(ephemeral=True)
-#         # call credit check API
-#         await 
-#         await interaction.followup.send(content=f"Commands synced, Daddy.", ephemeral=True)
-#     except Exception as e:
-#         await interaction.followup.send(content=f"There was an error syncing the command tree. Error message: {e}.", ephemeral=True)
-#         logger.error(f'Error error syncing command tree.', exc_info=True)

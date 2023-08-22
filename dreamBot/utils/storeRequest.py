@@ -20,6 +20,6 @@ async def store_request(user, prompt, negativePrompt, imagination, style, conten
             if response.status_code != 200:
                 print(f"Error: {response.status_code}")
                 return
-
+            return response.json().get('dream_id')
     except Exception as e:
         print(e)

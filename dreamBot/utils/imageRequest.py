@@ -48,11 +48,9 @@ async def imageRequest(positivePrompt, negativePrompt, cfg, style, interaction):
                 # specifically for naughty prompts
                 if 'invalid_prompts' in error_content:
                     await interaction.followup.send(content=f"You tried to be naughty... Pervert!", ephemeral=False)
-                    logger.logStabilityError(f'Someone was naughty: {error_content}')
             # for all other errors not worth erroring to user differently, just logging different
             elif response.status != 200:
                 await interaction.followup.send(content=f"There was an error from the Stability API.", ephemeral=True)
-                logger.logStabilityError(error_content)
             else:
                 # get raw data from response
                 data = await response.json()  

@@ -11,7 +11,6 @@ from pydantic import BaseModel
 from typing import List, Optional
 ### Custom imports
 from .database.database import AsyncSessionLocal, User, Dream, Favorite, get_db
-
 app = FastAPI()
 
 app.add_middleware(
@@ -41,38 +40,40 @@ class LeaderboardEntry(BaseModel):
 @app.post("/api/dream")
 async def create_dream(dream: CreateDream, db: AsyncSession = Depends(get_db)):
     try:
-        # Create a select object to check if the user exists in users table already
-        stmt = select(User).where(User.discord_user_id == dream.user_id)
-        result = await db.execute(stmt)
-        db_user = result.scalar_one_or_none()
-        
-        # if user isn't in users table, insert user info to users table
-        if db_user is None:
-            new_user = User(
-                discord_user_id=dream.user_id,
-                discord_nickname=dream.discord_nickname,
-                discord_avatar=dream.discord_avatar
+        # start a transaction
+        async with db.begin():
+            # Create a select object to check if the user exists in users table already
+            stmt = select(User).where(User.discord_user_id == dream.user_id)
+            result = await db.execute(stmt)
+            db_user = result.scalar_one_or_none()
+            
+            # if user isn't in users table, insert user info to users table
+            if db_user is None:
+                new_user = User(
+                    discord_user_id=dream.user_id,
+                    discord_nickname=dream.discord_nickname,
+                    discord_avatar=dream.discord_avatar
+                )
+                db.add(new_user)
+                # This will "flush" the operation, allowing the ID to be generated without committing the transaction.
+                await db.flush()
+                user_id_for_dream = new_user.id
+            else:
+                user_id_for_dream = db_user.id
+            
+            # Inserting the dream
+            new_dream = Dream(
+                user_id=user_id_for_dream,
+                prompt=dream.prompt,
+                negative_prompt=dream.negative_prompt,
+                imagination=dream.imagination,
+                style=dream.style,
+                image_url=dream.image_url
             )
-            db.add(new_user)
-            # This will "flush" the operation, allowing the ID to be generated without committing the transaction.
-            await db.flush()
-            user_id_for_dream = new_user.id
-        else:
-            user_id_for_dream = db_user.id
-        
-        # Inserting the dream
-        new_dream = Dream(
-            user_id=user_id_for_dream,
-            prompt=dream.prompt,
-            negative_prompt=dream.negative_prompt,
-            imagination=dream.imagination,
-            style=dream.style,
-            image_url=dream.image_url
-        )
-        db.add(new_dream)
+            db.add(new_dream)
 
-        await db.commit()
-        return {"message": "Dream created successfully!"}
+            await db.commit()
+        return {"message": "Dream stored successfully!", "dream_id": new_dream.id}
             
     except Exception as e:
         await db.rollback()
@@ -134,6 +135,49 @@ async def get_leaderboard_data(db: AsyncSession = Depends(get_db)):
     except Exception as e:
         print(e)
         raise HTTPException(status_code=500, detail="Failed to fetch leaderboard data.")
+
+class CreateFavorite(BaseModel):
+    user_id: int
+    mention: str
+    avatar: str
+    dream_id: int
+
+@app.post("/api/favorite")
+async def create_favorite(favorite: CreateFavorite, db: AsyncSession = Depends(get_db)):
+    try:
+        # start a transaction
+        async with db.begin():
+            # Create a select object to check if the user exists in users table already
+            stmt = select(User).where(User.discord_user_id == favorite.user_id)
+            result = await db.execute(stmt)
+            db_user = result.scalar_one_or_none()
+            
+            # if user isn't in users table, insert user info to users table
+            if db_user is None:
+                new_user = User(
+                    discord_user_id=favorite.user_id,
+                    discord_nickname=favorite.mention,
+                    discord_avatar=favorite.avatar
+                )
+                db.add(new_user)
+                # This will "flush" the operation, allowing the ID to be generated without committing the transaction.
+                await db.flush()
+                user_id_for_favorite = new_user.id
+            else:
+                user_id_for_favorite = db_user.id
+
+            new_favorite = Favorite(
+                user_id=user_id_for_favorite,
+                dream_id=favorite.dream_id
+            )
+            db.add(new_favorite)
+            await db.commit()
+        return {"message": "Favorite saved successfully!"}
+
+    except Exception as e:
+        await db.rollback()
+        import logging
+        logging.error(e)
 
 
 if __name__ == '__main__':
