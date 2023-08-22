@@ -15,10 +15,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the content of the local directories to the working directory
 COPY . ./api
-COPY entrypoint.sh .
 
 # Ensure the entrypoint script is executable
-RUN chmod +x entrypoint.sh
+RUN chmod +x /app/api/entrypoint.sh
 
 # Specify the command to run on container start
-CMD ["./entrypoint.sh"]
+CMD ["/app/api/entrypoint.sh"]

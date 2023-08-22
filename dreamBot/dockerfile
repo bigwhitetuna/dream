@@ -13,13 +13,11 @@ RUN apt-get update && \
 RUN pip3 install --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
 
-
 # Copy the content of the local directories to the working directory
 COPY . ./dreamBot
-COPY entrypoint.sh .
 
 # Ensure the entrypoint script is executable
-RUN chmod +x entrypoint.sh
+RUN chmod +x /app/dreamBot/entrypoint.sh
 
 # Specify the command to run on container start
-CMD ["./entrypoint.sh"]
+CMD ["/app/dreamBot/entrypoint.sh"]
