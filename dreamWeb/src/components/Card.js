@@ -10,7 +10,8 @@ const Card = ({
   imagination,
   style,
   imageUrl,
-  timestamp }) => {
+  timestamp,
+  }) => {
 
     const [isFavorited, setIsFavorited] = useState(false);
 
