@@ -18,8 +18,6 @@ class App extends Component {
         // Throttle the search function to only execute once every X milliseconds
         this.onSearchChange = throttle(this.onSearchChange.bind(this), 300);
     }
-
-    }
     // Fetch data from the api
     fetchData = () => {
         axios.get('http://127.0.0.1:8000/api/data')
