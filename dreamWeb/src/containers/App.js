@@ -1,9 +1,15 @@
 import React, { Component } from 'react';
+import { Navigate } from 'react-router-dom';
 import axios from 'axios';
 import throttle from 'lodash/throttle';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+// Components
 import CardList from '../components/CardList';
-import SearchBox from '../components/SearchBox';
 import ErrorBoundary from '../components/ErrorBoundary';
+import Header from '../components/Header';
+import DiscordCallbackHandler from '../components/DiscordCallbackHandler';
+import LandingPage from '../components/LandingPage';
+import ValidateSession from '../components/ValidateSession';
 import './App.css';
 
 class App extends Component {
@@ -14,14 +20,22 @@ class App extends Component {
             data: [], // holds all data fetched from the api
             filteredData: [], // holds the data filtered by the search field
             searchfield: '', // holds current value of the search field
+            user: null // null when no user is logged in, and holds user data when a user is logged in.
         }
         // Throttle the search function to only execute once every X milliseconds
         this.onSearchChange = throttle(this.onSearchChange.bind(this), 300);
     }
-    // Fetch data from the api
+
+    setUser = (userData) => {
+        console.log("Setting user data", userData)
+        this.setState({ user: userData });
+    }
+
+    // Fetch default image grid data from the api
     fetchData = () => {
         axios.get('http://127.0.0.1:8000/api/data')
         .then(response => {
+            console.log('Data fetched', response.data)
             // sort data by timestamp
             const sortedData = response.data.sort((a, b) => {
                 const dateA = new Date(a.dream.timestamp);
@@ -43,11 +57,11 @@ class App extends Component {
         const filtered = this.state.data.filter(entry => entry[5].toLowerCase().includes(searchValue));
         this.setState({ searchfield: searchValue, filteredData: filtered });
     }
-
     // lifecycle method called once the component is mounted into the DOM
     componentDidMount() {
         this.fetchData()
-        this.interval = setInterval(this.fetchData, 300000);
+        this.interval = setInterval(this.fetchData, 800000);
+        // does user have an active session when app loads
     }
 
         // lifecycle method called just before the component is removed from the DOM
@@ -58,29 +72,44 @@ class App extends Component {
 
     // display the component on the screen
     render() {
-        const { filteredData } = this.state;
+        const { filteredData, user } = this.state;
         
         // display loading message if data is not yet fetched
         if (!filteredData.length && !this.state.searchfield) {
             return <h1 className='tc'>Loading</h1>;
         }
-        
+
+        if (!user) {
+            <Router>
+                <Navigate to="/login" />
+            </Router>
+        }
+        console.log("Rendering App component with user:", user)
         // main component display
         return (
             <div className='tc'>
-                <div className='header flex justify-between items-center pa3'>
-                    <h1 className='f1 ma0'>DreamBot</h1>
-                    <div className='search-container'>
-                        <SearchBox searchChange={this.onSearchChange}/>
-                    </div>
-                </div>
-                <div> 
-                    <ErrorBoundary>
+            <Router>
+                {/* Validate the user session */}
+                <ValidateSession setUser={this.setUser} />
+                <Header searchChange={this.onSearchChange} user={user} setUser={this.setUser} />
+                <Routes>
+                    {/* Route for the landing page */}
+                    <Route path="/login" element={<LandingPage user={user} setUser={this.setUser} />} />
+                    {/* Routes for logged in users */}
+                    <Route path="/" element={
+                        <div>
                         {filteredData.length 
-                            ? <CardList data={filteredData} openModal={this.openModal}/> 
+                            ? <ErrorBoundary><CardList data={filteredData} openModal={this.openModal}/></ErrorBoundary> 
                             : <h3>No results found</h3>}
-                    </ErrorBoundary>
-                </div>
+                        </div>
+                    } />
+                    <Route path="/favorites" element={<h1>Favorites?</h1>} />
+                    {/* Handling routes */}
+                    <Route path="/auth/callback" element={<DiscordCallbackHandler setUser={this.setUser} />} />
+                    <Route path="/unauthorized" element={<h1>You are not authorized to view this page</h1>} />
+                    <Route path="/*" element={<h1>404: Page not found</h1>} />
+                </Routes>
+            </Router>
             </div>
         );
     }

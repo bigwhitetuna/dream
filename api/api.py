@@ -9,17 +9,33 @@ from sqlalchemy.orm import Session
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Optional
+from fastapi.responses import JSONResponse
+from fastapi_discord import DiscordOAuthClient, RateLimited, Unauthorized, User
+from fastapi_discord.models import GuildPreview
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
+from starlette.middleware.sessions import SessionMiddleware
+from starlette.requests import Request
+from starlette.responses import RedirectResponse
+import discord
+import os
+import dotenv
+import logging
+logging.basicConfig(level=logging.DEBUG)
+logging.info("Starting API...")
+
 ### Custom imports
 from .database.database import AsyncSessionLocal, User, Dream, Favorite, get_db
 app = FastAPI()
 
+SESSION_SECRET_KEY = "09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7"
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # allows all origins, be careful in production!
+    allow_origins=["http://localhost:3000"],
     allow_credentials=True,
     allow_methods=["*"],  # allows all methods
     allow_headers=["*"],
 )
+app.add_middleware(SessionMiddleware, secret_key=SESSION_SECRET_KEY)
 
 ### API models
 # model used for storing dreams
@@ -176,10 +192,111 @@ async def create_favorite(favorite: CreateFavorite, db: AsyncSession = Depends(g
 
     except Exception as e:
         await db.rollback()
-        import logging
         logging.error(e)
 
+### DISCORD AUTH ###
+dotenv.load_dotenv()
+### Identify env variables
+DISCORD_CLIENT = os.getenv('DISCORD_CLIENT')
+DISCORD_CLIENT_SECRET = os.getenv('DISCORD_CLIENT_SECRET')
+DISCORD_REDIRECT_URI = os.getenv('DISCORD_REDIRECT_URI')
+DISCORD_TOKEN_URL = "https://discord.com/api/v10/oauth2/token"
+
+discord = DiscordOAuthClient(
+    DISCORD_CLIENT, DISCORD_CLIENT_SECRET, DISCORD_REDIRECT_URI, ("identify", "guilds")
+)
+
+@app.get("/auth/callback")
+async def callback(code: str, request: Request):
+    import httpx
+    code = code
+    async def exchange_code(code):
+        payload = {
+            "client_id": DISCORD_CLIENT,
+            "client_secret": DISCORD_CLIENT_SECRET,
+            "grant_type": "authorization_code",
+            "code": code,
+            "redirect_uri": DISCORD_REDIRECT_URI,
+            "scope": "identify guilds"
+        }
+        headers: dict = {"Content-Type": "application/x-www-form-urlencoded"}
+    
+        async with httpx.AsyncClient() as client:
+            resp = await client.post(DISCORD_TOKEN_URL, data=payload, headers=headers)
+        
+        return resp.json()
+                
+
+    tokenData = await exchange_code(code)
+    logging.info(f"Token data: {tokenData}")
+
+    token = tokenData['access_token']
+    logging.info(f"Token: {token}")
+
+    guilds = await discord.guilds(token)
+    logging.info(f"Guilds: {guilds}")
+
+    specific_guild_id = '209441515041325056'
+    user = await discord.get_user(token['user_id'])
+    logging.info(f"User: {user}")
+
+    if any(guild.id == specific_guild_id for guild in guilds):
+        request.session["user_id"] = token['user_id']
+        return JSONResponse(status_code=200, content={"route": "/", "message": "authorized","userData": user})
+    else:
+       return JSONResponse(status_code=401, content={"status": "error", "message": "unauthorized", "route": "/login", "details": "Not a member of the guild"})
+
+# @app.on_event("startup")
+# async def on_startup():
+#     await discord.init()
+### Check to see if user is authenticated
+def get_current_user(request: Request):
+    user_id = request.session.get("user_id")
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    return user_id
+
+### Just to validate if the user has a session cookie
+@app.get("/validatesession")
+async def validate_session(current_user: int = None):
+    if current_user is None:
+        return JSONResponse(status_code=200, content={"valid": False, "message": "unauthorized"})
+    else:
+        return JSONResponse(status_code=200, content={"valid": True, "message": "authorized"})
+    
+
+@app.get("/auth/login")
+async def login():
+    return {"url": discord.oauth_login_url}
+
+@app.exception_handler(Unauthorized)
+async def unauthorized_error_handler(_, __):
+    return JSONResponse(status_code=401, content={"message": "Unauthorized"})
+
+# TODO: Import ain't workin' for ClientSessionNotInitialized, will fix later.
+# @app.exception_handler(ClientSessionNotInitialized, RateLimited)
+# async def client_session_error_handler(_, __):
+#     return JSONResponse(status_code=500, content={"message": "Internal server error"})
+
+# @app.get(
+#     "/authenticated",
+#     dependencies=[Depends(discord.requires_authorization)],
+#     response_model=bool
+#     )
+# async def isAuthenticated(token: str = Depends(discord.get_token)):
+#     try:
+#         auth = await discord.isAuthenticated(token)
+#         return auth
+#     except Unauthorized:
+#         return False
+
+# @app.get("/user", dependencies=[Depends(discord.requires_authorization)], response_model=User)
+# async def get_user(user: User = Depends(discord.get_current_user)):
+#     return user
+
+# @app.get("/guilds", dependencies=[Depends(discord.requires_authorization)], response_model=List[GuildPreview])
+# async def get_guilds(guilds: List = Depends(discord.guilds)):
+#     return guilds
 
 if __name__ == '__main__':
     uvicorn.run(app, host='0.0.0.0', port=8000)
-    print('API running!')
