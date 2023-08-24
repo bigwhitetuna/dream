@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 const ValidateSession = ({ setUser }) => {
+  console.log("Validate session component rendered")
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -12,7 +13,7 @@ const ValidateSession = ({ setUser }) => {
           const userData = response.data.userData;
           console.log("User data:", userData)
           setUser(userData);
-          navigate('/'); // Navigate to a route accessible only when authenticated
+          navigate('/grid'); // Navigate to a route accessible only when authenticated
         } else {
           navigate('/login'); // Navigate to the login page if not authenticated
         }

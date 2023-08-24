@@ -15,7 +15,7 @@ const DiscordCallbackHandler = ({ setUser }) => {
         .then(response => {
           if (response.data.status === 'success') {
             setUser(response.data.userData); // assume that your backend sends back the user data
-            navigate('/');
+            navigate('/grid');
           } else {
             navigate('/unauthorized');
           }

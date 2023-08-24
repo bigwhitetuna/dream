@@ -4,7 +4,7 @@ import DiscordLoginButton from './DiscordLoginButton';
 
 function LandingPage({ user, setUser }) {
     if (user) {
-        return <Navigate to="/" replace />;
+        return <Navigate to="/grid" replace />;
     }
 
     return (
