@@ -21,12 +21,12 @@ import os
 import dotenv
 import logging
 logging.basicConfig(level=logging.DEBUG)
-logging.info("Starting API...")
 
 ### Custom imports
 from .database.database import AsyncSessionLocal, User, Dream, Favorite, get_db
 app = FastAPI()
 
+### TODO: Switch this to a new key, and store it as an environment variable
 SESSION_SECRET_KEY = "09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7"
 app.add_middleware(
     CORSMiddleware,
@@ -36,6 +36,79 @@ app.add_middleware(
     allow_headers=["*"],
 )
 app.add_middleware(SessionMiddleware, secret_key=SESSION_SECRET_KEY)
+
+### DISCORD AUTH ###
+dotenv.load_dotenv()
+### Identify env variables
+DISCORD_CLIENT = os.getenv('DISCORD_CLIENT')
+DISCORD_CLIENT_SECRET = os.getenv('DISCORD_CLIENT_SECRET')
+DISCORD_REDIRECT_URI = os.getenv('DISCORD_REDIRECT_URI')
+DISCORD_TOKEN_URL = "https://discord.com/api/v10/oauth2/token"
+
+discord = DiscordOAuthClient(
+    DISCORD_CLIENT, DISCORD_CLIENT_SECRET, DISCORD_REDIRECT_URI, ("identify", "guilds")
+)
+###TODO: NEED TO FINSIH FIXING THIS
+###TODO: DONT FORGET
+###TODO: DONT FORGET
+###TODO: I am getting the token, but it the /auth/callback seems to be running twice, and it's invalidating my token the second run through fore everything can finish.
+###TODO: Need to figure out how to stop the second run through, or figure out why it's invalidating the token.
+@app.get("/auth/callback")
+async def callback(code: str, request: Request):
+    import httpx
+    async def exchange_code(code):
+        payload = {
+            "client_id": DISCORD_CLIENT,
+            "client_secret": DISCORD_CLIENT_SECRET,
+            "grant_type": "authorization_code",
+            "code": code,
+            "redirect_uri": DISCORD_REDIRECT_URI,
+            "scope": "identify guilds"
+        }
+        headers: dict = {"Content-Type": "application/x-www-form-urlencoded"}
+
+        logging.info(f"Payload: {payload}")
+        async with httpx.AsyncClient() as client:
+            resp = await client.post(DISCORD_TOKEN_URL, data=payload, headers=headers)
+        logging.info(f"Response: {resp.json()}")
+        return resp.json()
+                
+
+    tokenData = await exchange_code(code)
+    logging.info(f"Token data: {tokenData}")
+
+    token = tokenData['access_token']
+    logging.info(f"Token: {token}")
+
+    guilds = await discord.guilds(token)
+    logging.info(f"Guilds: {guilds}")
+
+    specific_guild_id = '209441515041325056'
+    user = await discord.get_user(token['user_id'])
+    logging.info(f"User: {user}")
+
+    if any(guild.id == specific_guild_id for guild in guilds):
+        request.session["user_id"] = token['user_id']
+        return JSONResponse(status_code=200, content={"route": "/", "message": "authorized","userData": user})
+    else:
+       return JSONResponse(status_code=401, content={"status": "error", "message": "unauthorized", "route": "/login", "details": "Not a member of the guild"})
+
+### Just to validate if the user has a session cookie
+@app.get("/validatesession")
+async def validate_session(current_user: int = None):
+    if current_user is None:
+        return JSONResponse(status_code=200, content={"valid": False, "message": "unauthorized"})
+    else:
+        return JSONResponse(status_code=200, content={"valid": True, "message": "authorized"})
+    
+
+@app.get("/auth/login")
+async def login():
+    return {"url": discord.oauth_login_url}
+
+@app.exception_handler(Unauthorized)
+async def unauthorized_error_handler(_, __):
+    return JSONResponse(status_code=401, content={"message": "Unauthorized"})
 
 ### API models
 # model used for storing dreams
@@ -194,58 +267,6 @@ async def create_favorite(favorite: CreateFavorite, db: AsyncSession = Depends(g
         await db.rollback()
         logging.error(e)
 
-### DISCORD AUTH ###
-dotenv.load_dotenv()
-### Identify env variables
-DISCORD_CLIENT = os.getenv('DISCORD_CLIENT')
-DISCORD_CLIENT_SECRET = os.getenv('DISCORD_CLIENT_SECRET')
-DISCORD_REDIRECT_URI = os.getenv('DISCORD_REDIRECT_URI')
-DISCORD_TOKEN_URL = "https://discord.com/api/v10/oauth2/token"
-
-discord = DiscordOAuthClient(
-    DISCORD_CLIENT, DISCORD_CLIENT_SECRET, DISCORD_REDIRECT_URI, ("identify", "guilds")
-)
-
-@app.get("/auth/callback")
-async def callback(code: str, request: Request):
-    import httpx
-    code = code
-    async def exchange_code(code):
-        payload = {
-            "client_id": DISCORD_CLIENT,
-            "client_secret": DISCORD_CLIENT_SECRET,
-            "grant_type": "authorization_code",
-            "code": code,
-            "redirect_uri": DISCORD_REDIRECT_URI,
-            "scope": "identify guilds"
-        }
-        headers: dict = {"Content-Type": "application/x-www-form-urlencoded"}
-    
-        async with httpx.AsyncClient() as client:
-            resp = await client.post(DISCORD_TOKEN_URL, data=payload, headers=headers)
-        
-        return resp.json()
-                
-
-    tokenData = await exchange_code(code)
-    logging.info(f"Token data: {tokenData}")
-
-    token = tokenData['access_token']
-    logging.info(f"Token: {token}")
-
-    guilds = await discord.guilds(token)
-    logging.info(f"Guilds: {guilds}")
-
-    specific_guild_id = '209441515041325056'
-    user = await discord.get_user(token['user_id'])
-    logging.info(f"User: {user}")
-
-    if any(guild.id == specific_guild_id for guild in guilds):
-        request.session["user_id"] = token['user_id']
-        return JSONResponse(status_code=200, content={"route": "/", "message": "authorized","userData": user})
-    else:
-       return JSONResponse(status_code=401, content={"status": "error", "message": "unauthorized", "route": "/login", "details": "Not a member of the guild"})
-
 # @app.on_event("startup")
 # async def on_startup():
 #     await discord.init()
@@ -255,24 +276,6 @@ def get_current_user(request: Request):
     if not user_id:
         raise HTTPException(status_code=401, detail="Not authenticated")
     return user_id
-
-### Just to validate if the user has a session cookie
-@app.get("/validatesession")
-async def validate_session(current_user: int = None):
-    if current_user is None:
-        return JSONResponse(status_code=200, content={"valid": False, "message": "unauthorized"})
-    else:
-        return JSONResponse(status_code=200, content={"valid": True, "message": "authorized"})
-    
-
-@app.get("/auth/login")
-async def login():
-    return {"url": discord.oauth_login_url}
-
-@app.exception_handler(Unauthorized)
-async def unauthorized_error_handler(_, __):
-    return JSONResponse(status_code=401, content={"message": "Unauthorized"})
-
 # TODO: Import ain't workin' for ClientSessionNotInitialized, will fix later.
 # @app.exception_handler(ClientSessionNotInitialized, RateLimited)
 # async def client_session_error_handler(_, __):
