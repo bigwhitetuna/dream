@@ -1,7 +1,8 @@
 ### Package imports
 from sqlalchemy import select
 import httpx
-
+import logging
+logging.basicConfig(level=logging.DEBUG)
 ### update the database with each request
 async def store_request(user, prompt, negativePrompt, imagination, style, content_url):
     try:
@@ -16,10 +17,11 @@ async def store_request(user, prompt, negativePrompt, imagination, style, conten
 
         async with httpx.AsyncClient() as client:
             response = await client.post("http://api:8000/api/dream", json=data)
+            logging.info(f"Response: {response.json()}")
 
             if response.status_code != 200:
-                print(f"Error: {response.status_code}")
+                logging.error(f"Error: {response.status_code} - {response.text}")
                 return
             return response.json().get('dream_id')
     except Exception as e:
-        print(e)
+        logging.error(f"Error storing request: {e}")

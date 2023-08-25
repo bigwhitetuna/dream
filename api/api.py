@@ -167,7 +167,7 @@ async def create_dream(dream: CreateDream, db: AsyncSession = Depends(get_db)):
     except Exception as e:
         await db.rollback()
         # Log the exception (assuming you have a logger setup)
-        print(e)
+        logging.error("Couldn't store dream: %s", e)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="An error occurred while processing your request.")
 
 ### broad data get endpoint, for webapp to use
