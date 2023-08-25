@@ -9,3 +9,4 @@ dreamBot\api\__pycache__
 data.sql
 data/
 .env
+dbdump/

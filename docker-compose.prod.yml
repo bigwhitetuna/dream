@@ -20,15 +20,15 @@ services:
     volumes:
       - ./dreamBot:/app/dreamBot
 
-  webapp:
-    build: 
-      context: ./dreamWeb
-      dockerfile: Dockerfile
-    # ports:
-    #   - "3000:3000" # Default React port
-    volumes:
-      - ./dreamWeb:/app/dreamWeb
-      - /app/dreamWeb/node_modules
+  # webapp:
+  #   build: 
+  #     context: ./dreamWeb
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "3000:3000" # Default React port
+  #   volumes:
+  #     - ./dreamWeb:/app/dreamWeb
+  #     - /app/dreamWeb/node_modules
 
   db:
     image: postgres:15
@@ -39,4 +39,5 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - C:/Users/Houston/Desktop/Development/dream/postgres-data:/var/lib/postgresql/data
+      # - C:/Users/Houston/Desktop/Development/dream/postgres-data:/var/lib/postgresql/data
+      - "/home/houstoncallaway/dream/postgres-data:/var/lib/postgresql/data"
