@@ -4,4 +4,4 @@ dreambot.db
 command_payload
 venv/
 __pycache__/
-dreamBot\__pycache__
+dreambot\__pycache__

@@ -15,20 +15,20 @@ services:
 
   discordbot:
     build:
-      context: ./dreamBot
+      context: ./dreambot
       dockerfile: Dockerfile
     volumes:
-      - ./dreamBot:/app/dreamBot
+      - ./dreambot:/app/dreambot
 
   # webapp:
   #   build: 
-  #     context: ./dreamWeb
+  #     context: ./dreamweb
   #     dockerfile: Dockerfile
   #   ports:
   #     - "3000:3000" # Default React port
   #   volumes:
-  #     - ./dreamWeb:/app/dreamWeb
-  #     - /app/dreamWeb/node_modules
+  #     - ./dreamweb:/app/dreamweb
+  #     - /app/dreamweb/node_modules
 
   db:
     image: postgres:15

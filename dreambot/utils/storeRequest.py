@@ -8,6 +8,8 @@ async def store_request(user, prompt, negativePrompt, imagination, style, conten
     try:
         data = {
             'user_id': user['id'],
+            'user_name': user['name'],
+            'user_avatar': user['avatar'],
             'prompt': prompt,
             'negative_prompt': negativePrompt,
             'imagination': imagination,
@@ -17,7 +19,6 @@ async def store_request(user, prompt, negativePrompt, imagination, style, conten
 
         async with httpx.AsyncClient() as client:
             response = await client.post("http://api:8000/api/dream", json=data)
-            logging.info(f"Response: {response.json()}")
 
             if response.status_code != 200:
                 logging.error(f"Error: {response.status_code} - {response.text}")

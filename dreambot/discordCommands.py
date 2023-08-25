@@ -6,15 +6,15 @@ from discord.ext import commands
 from typing import Literal, Optional
 from discord.ui import Button, View
 ### Code imports
-from dreamBot.utils.getUserInfo import getUserInfo
-from dreamBot.utils.imageRequest import imageRequest
-from dreamBot.utils.storeRequest import store_request
-from dreamBot.utils.getLeaderboardData import get_leaderboard_data
-from dreamBot.utils.storeFavorite import storeFavorite
+from dreambot.utils.getUserInfo import getUserInfo
+from dreambot.utils.imageRequest import imageRequest
+from dreambot.utils.storeRequest import store_request
+from dreambot.utils.getLeaderboardData import get_leaderboard_data
+from dreambot.utils.storeFavorite import storeFavorite
 
 import logging
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.ERROR, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # set intents for discord bot
 intents = discord.Intents(

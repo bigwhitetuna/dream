@@ -21,6 +21,8 @@ import os
 import dotenv
 import logging
 logging.basicConfig(level=logging.DEBUG)
+logging.getLogger('discord').setLevel(logging.WARNING)
+
 
 ### Custom imports
 from .database.database import AsyncSessionLocal, User, Dream, Favorite, get_db
@@ -119,6 +121,9 @@ class CreateDream(BaseModel):
     imagination: int
     style: Optional[str] = None
     image_url: str
+    user_name: str
+    user_avatar: str
+
 
 # model used for getting leaderboard data
 class LeaderboardEntry(BaseModel):
@@ -140,8 +145,8 @@ async def create_dream(dream: CreateDream, db: AsyncSession = Depends(get_db)):
             if db_user is None:
                 new_user = User(
                     discord_user_id=dream.user_id,
-                    discord_nickname=dream.discord_nickname,
-                    discord_avatar=dream.discord_avatar
+                    discord_nickname=dream.user_name,
+                    discord_avatar=dream.user_avatar
                 )
                 db.add(new_user)
                 # This will "flush" the operation, allowing the ID to be generated without committing the transaction.

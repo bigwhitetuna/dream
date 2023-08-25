@@ -2,7 +2,7 @@
 import aiohttp
 import base64
 ### Code imports
-from dreamBot.config import engineId, baseUrl, apiKey
+from dreambot.config import engineId, baseUrl, apiKey
 
 class EmptyDataError(Exception):
     pass

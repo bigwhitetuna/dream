@@ -10,7 +10,6 @@ async def storeFavorite(interaction, dream_id):
             "avatar": interaction.user.display_avatar.url,
             "dream_id": dream_id
         }
-        logging.info(data)
 
         async with httpx.AsyncClient() as client:
             response = await client.post("http://api:8000/api/favorite", json=data)

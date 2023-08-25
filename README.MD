@@ -8,3 +8,19 @@ Brought to you by (in order of contribution):
 - Chat GPT4
 - Co-Pilot
 - Houston
+
+To run this thing you need:
+- Discord bot, with client ID, client secret, and discord bot token
+- stability ai api key
+
+To run this thing locally, you need:
+- Python 3.8
+- docker-compose
+- some sort of virtual environment (I use conda) - not required but helpful
+
+To run:
+- clone repo
+- set up .env variables
+- `cd dream`
+- `sudo docker compose up --build`
+  - or equivalent command for your operating system / installation  
