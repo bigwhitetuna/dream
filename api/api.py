@@ -281,30 +281,6 @@ def get_current_user(request: Request):
     if not user_id:
         raise HTTPException(status_code=401, detail="Not authenticated")
     return user_id
-# TODO: Import ain't workin' for ClientSessionNotInitialized, will fix later.
-# @app.exception_handler(ClientSessionNotInitialized, RateLimited)
-# async def client_session_error_handler(_, __):
-#     return JSONResponse(status_code=500, content={"message": "Internal server error"})
-
-# @app.get(
-#     "/authenticated",
-#     dependencies=[Depends(discord.requires_authorization)],
-#     response_model=bool
-#     )
-# async def isAuthenticated(token: str = Depends(discord.get_token)):
-#     try:
-#         auth = await discord.isAuthenticated(token)
-#         return auth
-#     except Unauthorized:
-#         return False
-
-# @app.get("/user", dependencies=[Depends(discord.requires_authorization)], response_model=User)
-# async def get_user(user: User = Depends(discord.get_current_user)):
-#     return user
-
-# @app.get("/guilds", dependencies=[Depends(discord.requires_authorization)], response_model=List[GuildPreview])
-# async def get_guilds(guilds: List = Depends(discord.guilds)):
-#     return guilds
 
 if __name__ == '__main__':
     uvicorn.run(app, host='0.0.0.0', port=8000)

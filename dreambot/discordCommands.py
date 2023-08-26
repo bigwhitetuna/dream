@@ -34,7 +34,11 @@ bot = commands.Bot(command_prefix='/', intents=intents)
 @bot.event
 async def on_ready():
     # friendly message to see bot is running
-    print(f'\nDream bot is up and running!\n') 
+    print(f'\nDream bot is up and running!\n')
+    # uncomment if running for first time, will sync commands. 
+    # do not run every time during development, only when NEW commands are added, not when commands are edited (those work with no sync). 
+    # await bot.tree.sync()
+    # logging.info('Synced commands')
 
 class FavoriteButton(Button):
     def __init__(self, dream_id=None, label=None):
@@ -221,7 +225,7 @@ async def dreamsync(interaction: discord.Interaction):
         await interaction.followup.send(content=f"Commands synced, Daddy.", ephemeral=False)
     except Exception as e:
         await interaction.followup.send(content=f"There was an error syncing the command tree. Error message: {e}.", ephemeral=True)
-        print(e)
+        logging.error(e)
 
 ### Dream Help ###
 @bot.tree.command(name='dreamhelp', description='Get help with DreamBot')

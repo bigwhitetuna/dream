@@ -38,5 +38,3 @@ services:
       POSTGRES_DB: postgres
     ports:
       - "5432:5432"
-    volumes:
-      - /home/houston/dream/postgres-data:/var/lib/postgresql/data
