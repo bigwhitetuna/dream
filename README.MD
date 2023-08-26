@@ -23,4 +23,4 @@ To run:
 - set up .env variables
 - `cd dream`
 - `sudo docker compose up --build`
-  - or equivalent command for your operating system / installation  
+  - or equivalent command for your operating system / installation
