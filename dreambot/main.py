@@ -6,4 +6,5 @@ from dreambot.discordCommands import bot
 async def main():
     await bot.start(discordToken)
 
-asyncio.get_event_loop().run_until_complete(main())
+if __name__ == "__main__":
+    asyncio.get_event_loop().run_until_complete(main())
