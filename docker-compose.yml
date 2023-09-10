@@ -24,8 +24,8 @@ services:
     build: 
       context: ./dreamweb
       dockerfile: Dockerfile
-    # ports:
-    #   - "3000:3000" # Default React port
+    ports:
+      - "3000:3000" # Default React port
     volumes:
       - ./dreamweb:/app/dreamweb
       - /app/dreamweb/node_modules

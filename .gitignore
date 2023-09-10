@@ -8,5 +8,5 @@ __pycache__/
 dreambot\api\__pycache__
 data.sql
 data/
-.env
+**.env
 dbdump/
