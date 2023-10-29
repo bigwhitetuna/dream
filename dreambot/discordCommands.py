@@ -15,6 +15,7 @@ from dreambot.utils.storeFavorite import storeFavorite
 import logging
 
 logging.basicConfig(level=logging.ERROR, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.getLogger('discord').setLevel(logging.INFO)
 
 # set intents for discord bot
 intents = discord.Intents(
@@ -86,85 +87,70 @@ async def dream(interaction: discord.Interaction,
     #######################################
     ### Generate images ###
     #######################################
+    # Defer the reply so we can do some async work before responding
+    await interaction.response.defer(ephemeral=False)
+    nickname = interaction.user.nick
+    if not nickname:
+        nickname = interaction.user.name
+    # retrive the prompt from the user
+    prompt = prompt
+    negativePrompt = negative_prompt
+    # logic for making sure cfg value is between 1 and 35
+    if imagination is None:
+        cfg = 10
+    else:
+        cfg = min(35, max(1, round(imagination)))
+    # set styles from response
+    style = style_preset
+
+    image_data = None
+    # handle if image_data doesn't come through (most likely cause of a lewd prompt, but might be another error)
     try:
-        # Defer the reply so we can do some async work before responding
-        await interaction.response.defer(ephemeral=False)
-        nickname = interaction.user.nick
-        if not nickname:
-            nickname = interaction.user.name
-        # retrive the prompt from the user
-        prompt = prompt
-        negativePrompt = negative_prompt
-        # logic for making sure cfg value is between 1 and 35
-        if imagination is None:
-            cfg = 10
-        else:
-            cfg = min(35, max(1, round(imagination)))
-        # set styles from response
-        style = style_preset
-
-        image_data = None
-        # handle if image_data doesn't come through (most likely cause of a lewd prompt, but might be another error)
-        try:
-            # process response
-            image_data = await imageRequest(prompt, negativePrompt, cfg, style, interaction)
-        except Exception as e:
-            print(e)
-        
-        #only send response if image data is available
-        if image_data:            
-            # create the embed from the response
-            embed = discord.Embed(description=f'**Prompt:** {prompt} \n **Negative Prompt:** {negativePrompt} \n**Imagination #:** {cfg} \n**Style:** {style}')
-            file = discord.File(io.BytesIO(image_data), filename='image.png')
-            embed.set_image(url="attachment://image.png")
-            embed.set_footer(text=f'Requested by {nickname}', icon_url=user['avatar'])
-
-            # add buttons 
-            favbutton = FavoriteButton(user)
-            button2 = Button(label="Website", style=discord.ButtonStyle.link, url="https://google.com/")
-            view = View()
-            view.add_item(favbutton)
-            view.add_item(button2)
-
-            # respond to channel and user with image embed
-            message = await interaction.followup.send(
-                content=f"Here is your image {user['mention']}!", 
-                embed=embed,
-                file=file,
-                view=view,
-                ephemeral=False
-                )
-            
-            image_url = message.embeds[0].image.url
-
-            userDict = {
-                'id': user['id'],
-                'name': nickname,
-                'avatar': user['avatar'].url
-            }
-
-            dream_id = await store_request(userDict, prompt, negativePrompt, cfg, style, image_url)
-
-            new_favbutton = FavoriteButton(dream_id, label="Favorite")
-            new_view = View()
-            new_view.add_item(new_favbutton)
-            new_view.add_item(button2)  # the other button you originally had
-
-            await message.edit(view=new_view)
-
-    #######################################
-    # Error handling
-    #######################################
-    ### Discord errors ###
-    except (discord.Forbidden, discord.HTTPException, discord.NotFound, discord.RateLimited, discord.DiscordException) as e:
-        await interaction.followup.send(content=f"There was an error with Discord. Error message: {e}.", ephemeral=True)
-        logging.error(e)
-    # Generic error handling
+        # process response
+        image_data = await imageRequest(prompt, negativePrompt, cfg, style, interaction)
     except Exception as e:
-        print(e)
-        await interaction.followup.send(content=f"{user['mention']}, there was an error processing your request.", ephemeral=True)
         logging.error(e)
     
+    #only send response if image data is available
+    if image_data:            
+        # create the embed from the response
+        embed = discord.Embed(description=f'**Prompt:** {prompt} \n **Negative Prompt:** {negativePrompt} \n**Imagination #:** {cfg} \n**Style:** {style}')
+        file = discord.File(io.BytesIO(image_data), filename='image.png')
+        embed.set_image(url="attachment://image.png")
+        embed.set_footer(text=f'Requested by {nickname}', icon_url=user['avatar'])
+
+        # add buttons 
+        favbutton = FavoriteButton(user)
+        button2 = Button(label="Website", style=discord.ButtonStyle.link, url="https://google.com/")
+        view = View()
+        view.add_item(favbutton)
+        view.add_item(button2)
+
+        # respond to channel and user with image embed
+        message = await interaction.followup.send(
+            content=f"Here is your image {user['mention']}!", 
+            embed=embed,
+            file=file,
+            view=view,
+            ephemeral=False
+            )
+        
+        image_url = message.embeds[0].image.url
+
+        userDict = {
+            'id': user['id'],
+            'name': nickname,
+            'avatar': user['avatar'].url
+        }
+
+        dream_id = await store_request(userDict, prompt, negativePrompt, cfg, style, image_url)
+
+        new_favbutton = FavoriteButton(dream_id, label="Favorite")
+        new_view = View()
+        new_view.add_item(new_favbutton)
+        new_view.add_item(button2)  # the other button you originally had
+
+        await message.edit(view=new_view)
 
 ### Dream Leader ###
 @bot.tree.command(name='dreamleader', description='Get the leaderboard for DalleBot')
@@ -240,4 +226,4 @@ async def dreamhelp(interaction: discord.Interaction):
                                         "Run `/dreamleader` to get the leaderboard for DalleBot. \n"
                                        , ephemeral=True)
     except Exception as e:
-        print(e)
+        logging.error(e)
