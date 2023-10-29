@@ -32,5 +32,3 @@ There doesn't appear to be any concrete definition of how long the Discord CDN w
 But this IS a potential risk for losing all the historical images that have been generated, including favorites. It may be that Favorites are stored as images in the future, to prevent loss.
 
 For more detailed information on each component, refer to the READMEs in each subdirectory.
-
-I'm just testing
