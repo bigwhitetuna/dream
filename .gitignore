@@ -10,3 +10,7 @@ data.sql
 data/
 **.env
 dbdump/
+data_inject.py
+data_recovery.py
+extracted_data.json
+extraction_issues.txt
