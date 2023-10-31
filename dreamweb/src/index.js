@@ -4,13 +4,18 @@ import './index.css';
 import App from './containers/App';
 import reportWebVitals from './reportWebVitals';
 import 'tachyons';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
 
 // original language, saving for reference
+const theme = createTheme();
+
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <div>
     {/* <React.StrictMode> */}
+    <ThemeProvider theme={theme}>
       <App />
+    </ThemeProvider>
     {/* </React.StrictMode> */}
   </div>
 );

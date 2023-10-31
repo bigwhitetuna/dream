@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
-import { loginUrl } from './api';
-import './DiscordLoginButton.css';
+import { loginUrl } from '../api';
+import Button from '@mui/material/Button';
+import Avatar from '@mui/material/Avatar';
 
 class DiscordLoginButton extends Component {
     state = {
@@ -38,21 +39,31 @@ class DiscordLoginButton extends Component {
 
     render() {
         const { user } = this.props;
-
+    
         if (this.state.isLoading) {
-            return <p>Loading...</p>; // or you can render a spinner
+            return <p>Loading...</p>; // or you can use MUI's CircularProgress for a spinner
         }
-
+    
         return (
-            <button className='discord-login-btn' onClick={this.handleLoginClick}>
+            <Button 
+                variant="contained" 
+                color="primary" 
+                onClick={this.handleLoginClick}
+                sx={{
+                    fontWeight: 'bold',
+                    '&:hover': {
+                        backgroundColor: '#5b6eae',
+                    }
+                }}
+            >
                 {user ? (
-                    <img src={user.iconURL} alt="Discord Icon" className="discord-icon" />
+                    <Avatar src={user.iconURL} alt="Discord Icon" />
                 ) : (
                     "Login with Discord"
                 )}
-            </button>
+            </Button>
         );
-    }
+    }    
 }
 
 export default DiscordLoginButton;

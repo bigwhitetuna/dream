@@ -9,6 +9,8 @@ services:
       - db
     environment:
       - DATABASE_URL=postgresql://postgres:password@db:5432/postgres
+    ports:
+      - "8000:8000"
     volumes:
       - ./api:/app/api
       - ./database:/app/database
