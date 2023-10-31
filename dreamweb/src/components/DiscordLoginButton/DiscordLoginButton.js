@@ -50,9 +50,11 @@ class DiscordLoginButton extends Component {
                 color="primary" 
                 onClick={this.handleLoginClick}
                 sx={{
+                    backgroundColor: '#333333', // Dark gray
+                    color: 'white', // Text color
                     fontWeight: 'bold',
                     '&:hover': {
-                        backgroundColor: '#5b6eae',
+                        backgroundColor: '#1a1a1a', // Even darker gray
                     }
                 }}
             >

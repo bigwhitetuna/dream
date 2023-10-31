@@ -5,18 +5,41 @@ import App from './containers/App';
 import reportWebVitals from './reportWebVitals';
 import 'tachyons';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
+import ErrorBoundary from './components/ErrorBoundary';
 
-// original language, saving for reference
-const theme = createTheme();
+const theme = createTheme({
+  components: {
+    MuiTab: {
+      styleOverrides: {
+        root: {
+          '&.Mui-selected': {
+            color: '#FFFFFF',
+          },
+          color: '#888888',
+        },
+      },
+    },
+    MuiTabs: {
+      styleOverrides: {
+        indicator: {
+          backgroundColor: '#FFFFFF',
+        },
+      },
+    },
+  },
+});
+
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <div>
-    {/* <React.StrictMode> */}
-    <ThemeProvider theme={theme}>
-      <App />
-    </ThemeProvider>
-    {/* </React.StrictMode> */}
+    <React.StrictMode>
+      <ErrorBoundary>
+        <ThemeProvider theme={theme}>
+          <App />
+        </ThemeProvider>
+      </ErrorBoundary>
+    </React.StrictMode>
   </div>
 );
 

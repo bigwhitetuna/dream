@@ -5,26 +5,35 @@ import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
+import Tabs from '@mui/material/Tabs';
+import Tab from '@mui/material/Tab';
 
-const Header = ({ onSearchChange, user, setUser }) => {
+const Header = ({ searchChange, user, setUser }) => {
+
+    // Handles for switching between navigation tabs
+    const [value, setValue] = React.useState(0);
+
+    const handleChange = (event, newValue) => {
+        setValue(newValue);
+    };
+
     return (
-        <AppBar position="sticky">
+        <AppBar position="sticky" sx={{ backgroundColor: '#683b74' }}>
             <Toolbar>
                 <Typography variant="h6">
                     DreamBot
                 </Typography>
-                {user && (
-                    <div className="navigation-tab">
-                        {/* Navigation content */}
-                    </div>
-                )}
-                <SearchBox searchChange={onSearchChange} />
+                <Tabs value={value} onChange={handleChange} aria-label='navigation tabs' sx={{ ml: 2 }}>
+                    <Tab label="Images" />
+                    <Tab label="Stats" />
+                    {/* <Tab label="Contact" /> */}
+                </Tabs>
                 <Box flexGrow={1} />
+                <SearchBox searchChange={searchChange} />
                 <DiscordLoginButton />
             </Toolbar>
         </AppBar>
     );
 }
-
 
 export default Header;

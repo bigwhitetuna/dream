@@ -1,12 +1,12 @@
 import React, { Component } from 'react';
 import { Navigate } from 'react-router-dom';
 import axios from 'axios';
-import throttle from 'lodash/throttle';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 // Components
 import CardList from '../components/CardList/CardList';
 import ErrorBoundary from '../components/ErrorBoundary';
 import Header from '../components/Header/Header';
+import UserSelectDropdown from '../components/UserSelectDropdown/UserSelectDropdown';
 import DiscordCallbackHandler from '../components/DiscordCallbackHandler';
 import LandingPage from '../components/LandingPage/LandingPage';
 import ValidateSession from '../components/ValidateSession';
@@ -19,17 +19,27 @@ class App extends Component {
             data: [], // holds all data fetched from the api
             filteredData: [], // holds the data filtered by the search field
             searchfield: '', // holds current value of the search field
-            user: null // null when no user is logged in, and holds user data when a user is logged in.
+            user: null, // null when no user is logged in, and holds user data when a user is logged in.
+            selectedUser: '' // holds the id of the user selected from the dropdown
         }
-        // Throttle the search function to only execute once every X milliseconds
-        // this.onSearchChange = throttle(this.onSearchChange.bind(this), 300);
     }
 
+    // sets user data for the session
     setUser = (userData) => {
         console.log("Setting user data", userData)
         this.setState({ user: userData });
     }
 
+    // handles the user selection from the dropdown
+    handleUserChange = (event) => {
+        const selectedUserId = event.target.value;
+        console.log(`User ${selectedUserId} selected from dropdown`);
+
+        this.setState({ selectedUser: selectedUserId }, () => {
+            this.filterData();
+        });
+    }
+    
     // TODO: Move this to a separate component (see FetchImages.js)
     // Only call it when grid is actually going to show
     // Fetch default image grid data from the api
@@ -52,12 +62,37 @@ class App extends Component {
         });
     }
 
-    // whenever search field changes, update the state with the new value
+    // Update the filtered data based on the search field and selected user
+    filterData = () => {
+        const { data, selectedUser, searchfield } = this.state;
+
+        let filtered = data;
+
+        // First, filter by selected user
+        if (selectedUser) {
+            filtered = filtered.filter(entry => entry.user.id === selectedUser);
+        }
+
+        // Then filter by search field
+        if (searchfield) {
+            filtered = filtered.filter(entry => {
+                // searching in the prompt field
+                return entry.dream.prompt.toLowerCase().includes(searchfield);
+            })
+        }
+    
+        this.setState({ filteredData: filtered });
+    }
+    
+
+    // updates list of images to display based on search field contents
     onSearchChange = (event) => {
         const searchValue = event.target.value.toLowerCase();
-        const filtered = this.state.data.filter(entry => entry[5].toLowerCase().includes(searchValue));
-        this.setState({ searchfield: searchValue, filteredData: filtered });
-    }
+        this.setState({ searchfield: searchValue }, () => {
+            this.filterData();
+        });
+    }      
+
     // lifecycle method called once the component is mounted into the DOM
     componentDidMount() {
         this.fetchData()
@@ -74,6 +109,12 @@ class App extends Component {
     // display the component on the screen
     render() {
         const { filteredData, user } = this.state;
+
+        // get list of potential image submitters to filter grid by
+        const uniqueUsers = Array.from(
+            this.state.data.reduce((map, item) => map.set(item.user.id, item.user), new Map()).values()
+        );
+
         // const { user } = this.state;
         console.log(`Rendering App component with user`)
         // display loading message if data is not yet fetched
@@ -97,6 +138,11 @@ class App extends Component {
                     {/* Routes for logged in users */}
                     <Route path="/grid" element={
                         <div>
+                        <UserSelectDropdown 
+                            users={uniqueUsers} 
+                            selectedUser={this.state.selectedUser} 
+                            handleUserChange={this.handleUserChange} 
+                        />
                         {filteredData.length 
                             ? <ErrorBoundary>
                                 <CardList data={filteredData} openModal={this.openModal}/></ErrorBoundary> 
