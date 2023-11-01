@@ -45,7 +45,7 @@ class App extends Component {
     // Fetch default image grid data from the api
     fetchData = () => {
         console.log('Fetching data')
-        axios.get('http://127.0.0.1:8000/api/data')
+        axios.get(`${process.env.REACT_APP_API_BASE_URL}/api/data`)
         .then(response => {
             // console.log('Data fetched', response.data)
             // sort data by timestamp
@@ -113,7 +113,7 @@ class App extends Component {
     // display the component on the screen
     render() {
         console.log('Rendering App component')
-        const { filteredData, user } = this.state;
+        const { filteredData, user, selectedUser } = this.state;
 
         // get list of potential image submitters to filter grid by
         const uniqueUsers = Array.from(
@@ -133,27 +133,36 @@ class App extends Component {
             <Router>
                 {/* Validate the user session */}
                 {/* <ValidateSession setUser={this.setUser} /> */}
-                <Header searchChange={this.onSearchChange} user={user} setUser={this.setUser} />
+                <Header 
+                    searchChange={this.onSearchChange} 
+                    user={user} 
+                    setUser={this.setUser} 
+                    uniqueUsers={uniqueUsers}
+                    selectedUser={selectedUser}
+                    handleUserChange={this.handleUserChange}
+                    />
                 <Routes>
                     {/* Route for the landing page */}
-                    <Route path="/" element={<h1>Marketing page</h1>} />
-                    {/* Route for the login page */}
-                    {/* <Route path="/login" element={<LandingPage user={user} setUser={this.setUser} />} /> */}
-                    <Route path="/login" element={<h1>Login</h1>} />
-                    {/* Routes for logged in users */}
-                    <Route path="/grid" element={
+                    <Route path="/" element={
                         <div>
-                        <UserSelectDropdown 
-                            users={uniqueUsers} 
-                            selectedUser={this.state.selectedUser} 
-                            handleUserChange={this.handleUserChange} 
-                        />
                         {filteredData.length 
                             ? <ErrorBoundary>
                                 <CardList data={filteredData} openModal={this.openModal}/></ErrorBoundary> 
                             : <h3>No results found</h3>}
                         </div>
                     } />
+                    {/* Route for the login page */}
+                    {/* <Route path="/login" element={<LandingPage user={user} setUser={this.setUser} />} /> */}
+                    {/* <Route path="/login" element={<h1>Login</h1>} /> */}
+                    {/* Routes for logged in users */}
+                    {/* <Route path="/grid" element={
+                        <div>
+                        {filteredData.length 
+                            ? <ErrorBoundary>
+                                <CardList data={filteredData} openModal={this.openModal}/></ErrorBoundary> 
+                            : <h3>No results found</h3>}
+                        </div>
+                    } /> */}
                     {/* <Route path="/favorites" element={<h1>Favorites?</h1>} /> */}
                     {/* Handling routes */}
                     {/* <Route path="/auth/callback" element={<DiscordCallbackHandler setUser={this.setUser} />} /> */}
