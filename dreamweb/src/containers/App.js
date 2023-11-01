@@ -32,8 +32,8 @@ class App extends Component {
 
     // handles the user selection from the dropdown
     handleUserChange = (event) => {
+        console.log("User selection changed")
         const selectedUserId = event.target.value;
-        console.log(`User ${selectedUserId} selected from dropdown`);
 
         this.setState({ selectedUser: selectedUserId }, () => {
             this.filterData();
@@ -44,9 +44,10 @@ class App extends Component {
     // Only call it when grid is actually going to show
     // Fetch default image grid data from the api
     fetchData = () => {
+        console.log('Fetching data')
         axios.get('http://127.0.0.1:8000/api/data')
         .then(response => {
-            console.log('Data fetched', response.data)
+            // console.log('Data fetched', response.data)
             // sort data by timestamp
             const sortedData = response.data.sort((a, b) => {
                 const dateA = new Date(a.dream.timestamp);
@@ -64,6 +65,7 @@ class App extends Component {
 
     // Update the filtered data based on the search field and selected user
     filterData = () => {
+        console.log('Filtering data')
         const { data, selectedUser, searchfield } = this.state;
 
         let filtered = data;
@@ -87,6 +89,7 @@ class App extends Component {
 
     // updates list of images to display based on search field contents
     onSearchChange = (event) => {
+        console.log('Search field changed')
         const searchValue = event.target.value.toLowerCase();
         this.setState({ searchfield: searchValue }, () => {
             this.filterData();
@@ -95,6 +98,7 @@ class App extends Component {
 
     // lifecycle method called once the component is mounted into the DOM
     componentDidMount() {
+        console.log('Component did mount')
         this.fetchData()
     //     this.interval = setInterval(this.fetchData, 800000);
     //     does user have an active session when app loads
@@ -108,6 +112,7 @@ class App extends Component {
 
     // display the component on the screen
     render() {
+        console.log('Rendering App component')
         const { filteredData, user } = this.state;
 
         // get list of potential image submitters to filter grid by
@@ -116,7 +121,7 @@ class App extends Component {
         );
 
         // const { user } = this.state;
-        console.log(`Rendering App component with user`)
+        // console.log(`Rendering App component with user`)
         // display loading message if data is not yet fetched
         // TODO: move this to only show when for grid-display pages, not base level app render
         if (!filteredData.length && !this.state.searchfield) {

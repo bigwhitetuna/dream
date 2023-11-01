@@ -4,7 +4,6 @@ import { Grid, Box } from '@mui/material';
 import Card from '../Card/Card.js';
 
 const CardList = ({ data }) => {
-    console.log({data});
     return (
         <Box p={1}> {/* This adds padding around the grid */}
             <Grid container spacing={1} justifyContent="center">

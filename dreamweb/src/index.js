@@ -33,13 +33,13 @@ const theme = createTheme({
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <div>
-    <React.StrictMode>
+    {/* <React.StrictMode> */}
       <ErrorBoundary>
         <ThemeProvider theme={theme}>
           <App />
         </ThemeProvider>
       </ErrorBoundary>
-    </React.StrictMode>
+    {/* </React.StrictMode> */}
   </div>
 );
 
