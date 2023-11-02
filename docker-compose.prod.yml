@@ -28,7 +28,6 @@ services:
       - "3000:3000" # Default React port
     volumes:
       - ./dreamweb:/app/dreamweb
-      - /app/dreamweb/node_modules
 
   db:
     image: postgres:15
