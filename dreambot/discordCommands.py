@@ -15,7 +15,7 @@ from dreambot.utils.storeFavorite import storeFavorite
 import logging
 
 logging.basicConfig(level=logging.ERROR, format='%(asctime)s - %(levelname)s - %(message)s')
-logging.getLogger('discord').setLevel(logging.INFO)
+logging.getLogger('discord').setLevel(logging.WARNING)
 
 # set intents for discord bot
 intents = discord.Intents(

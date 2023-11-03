@@ -9,6 +9,7 @@ dreambot\api\__pycache__
 data.sql
 data/
 **.env
+**.vscode
 dbdump/
 data_inject.py
 data_recovery.py
