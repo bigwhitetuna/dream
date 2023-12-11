@@ -53,7 +53,7 @@ class FavoriteButton(Button):
 
 
 ### Dream Command ###
-@bot.tree.command(name='dream', description='Generate an image from a prompt.')
+@bot.tree.command(name='dream', description='Generate an image from a prompt using Stable Diffusion from Stability AI.')
 @app_commands.describe(prompt = 'Enter a prompt to generate an image from.',
                     negative_prompt = 'Describe the things you DON\'T want in your image, such as blur, blurry, etc. If you put nothing, blur added as a negative prompt by default.',
                     imagination = 'A number 1-35, 35 being less imaginative, 1 being wildly imaginative',
@@ -153,7 +153,7 @@ async def dream(interaction: discord.Interaction,
         await message.edit(view=new_view)
 
 ### Dream Leader ###
-@bot.tree.command(name='dreamleader', description='Get the leaderboard for DalleBot')
+@bot.tree.command(name='dreamleader', description='Get the leaderboard for image generation.')
 async def dreamleader(interaction: discord.Interaction):
     # grab user info
     user = getUserInfo(interaction)
