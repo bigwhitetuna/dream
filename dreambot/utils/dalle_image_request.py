@@ -6,7 +6,7 @@ from openai import AsyncOpenAI
 import logging
 
 client = AsyncOpenAI(
-    api_key=os.getenv('DALLE_API_KEY'),
+    api_key=os.getenv('OPENAI_API_KEY'),
 )
 
 async def dalle_image_request(prompt, quality, style):
