@@ -4,7 +4,7 @@ import httpx
 import logging
 logging.basicConfig(level=logging.DEBUG)
 ### update the database with each request
-async def store_request(user, prompt, negativePrompt, imagination, style, content_url):
+async def store_request(user, prompt, quality, style, content_url, model, negativePrompt=None, imagination=None):
     try:
         data = {
             'user_id': user['id'],
@@ -14,7 +14,8 @@ async def store_request(user, prompt, negativePrompt, imagination, style, conten
             'negative_prompt': negativePrompt,
             'imagination': imagination,
             'style': style,
-            'image_url': content_url
+            'image_url': content_url,
+            'model': model
         }
 
         async with httpx.AsyncClient() as client:

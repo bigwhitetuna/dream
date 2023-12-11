@@ -117,8 +117,8 @@ async def unauthorized_error_handler(_, __):
 class CreateDream(BaseModel):
     user_id: int
     prompt: str
-    negative_prompt: str
-    imagination: int
+    negative_prompt: Optional[str] = None
+    imagination: Optional[int] = None
     style: Optional[str] = None
     image_url: str
     user_name: str

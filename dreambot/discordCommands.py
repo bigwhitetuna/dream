@@ -11,6 +11,7 @@ from dreambot.utils.imageRequest import imageRequest
 from dreambot.utils.storeRequest import store_request
 from dreambot.utils.getLeaderboardData import get_leaderboard_data
 from dreambot.utils.storeFavorite import storeFavorite
+from dreambot.utils.dalle_image_request import dalle_image_request
 
 import logging
 
@@ -41,6 +42,15 @@ async def on_ready():
     # await bot.tree.sync()
     # logging.info('Synced commands')
 
+@bot.event
+async def on_app_command_error(interaction: discord.Interaction, error: discord.app_commands.AppCommandError):
+    if isinstance(error, discord.app_commands.errors.MissingRole):
+        # Send a message to the user if they are missing the required role
+        await interaction.response.send_message("You don't have the role to use DreamBot", ephemeral=True)
+    else:
+        # Log other errors or handle them as needed
+        logging.error(f"Error executing command: {error}")
+
 class FavoriteButton(Button):
     def __init__(self, dream_id=None, label=None):
         super().__init__(label="Favorite", style=discord.ButtonStyle.blurple, custom_id="temporary_favorite", emoji="❤️")
@@ -52,12 +62,15 @@ class FavoriteButton(Button):
         await interaction.response.send_message("You favorited this image!", ephemeral=True, delete_after=10)
 
 
-### Dream Command ###
+##################################################################
+################# DREAM COMMAND ##################################
+##################################################################
 @bot.tree.command(name='dream', description='Generate an image from a prompt using Stable Diffusion from Stability AI.')
 @app_commands.describe(prompt = 'Enter a prompt to generate an image from.',
                     negative_prompt = 'Describe the things you DON\'T want in your image, such as blur, blurry, etc. If you put nothing, blur added as a negative prompt by default.',
                     imagination = 'A number 1-35, 35 being less imaginative, 1 being wildly imaginative',
                     style_preset = 'Style presets provided by Stability, that work very well with their model.')
+@app_commands.checks.has_role("dreamer")  # Restrict to users with the role
 async def dream(interaction: discord.Interaction,
                 prompt: str,
                 style_preset: Optional[Literal[    
@@ -143,7 +156,7 @@ async def dream(interaction: discord.Interaction,
             'avatar': user['avatar'].url
         }
 
-        dream_id = await store_request(userDict, prompt, negativePrompt, cfg, style, image_url)
+        dream_id = await store_request(userDict, prompt, style, image_url, 'Stable Diffusion', negativePrompt, cfg)
 
         new_favbutton = FavoriteButton(dream_id, label="Favorite")
         new_view = View()
@@ -152,8 +165,91 @@ async def dream(interaction: discord.Interaction,
 
         await message.edit(view=new_view)
 
-### Dream Leader ###
+##################################################################
+################# DALLE COMMAND ##################################
+##################################################################
+@bot.tree.command(name='dalle', description='Generate an image from a prompt using Dalle-3 from Open AI.')
+@app_commands.checks.has_role("chibis")  # Restrict to users with the role
+@app_commands.describe(prompt = 'Enter a prompt to generate an image from Dalle-3.',
+                    style = 'Either vivid or natural - vivid leans toward hyper-real and dramatic. Defaults to vivid if not selected.',
+                    quality = 'Either HD or null. HD leans the model toward finer details and greater consistency in the image. Defaults to HD if not selected.'
+                    )
+async def dream(interaction: discord.Interaction,
+                prompt: str,
+                style: Optional[Literal[    
+                    'vivid',
+                    'natural']] = 'vivid',
+                quality: Optional[Literal[
+                    'hd',
+                    'standard'
+                    ]] = 'standard',
+                ):    
+    # grab user info
+    user = getUserInfo(interaction)
+
+    await interaction.response.defer(ephemeral=False)
+    nickname = interaction.user.nick
+    if not nickname:
+        nickname = interaction.user.name
+    # retrive the prompt from the user
+    prompt = prompt
+    # set styles from response
+    style = style
+
+    image_data = None
+    revised_prompt = None
+
+    try:
+        # process response
+        image_data, revised_prompt = await dalle_image_request(prompt, quality, style)
+    except Exception as e:
+        logging.error(e)
+    
+    if image_data:
+        # create the embed from the response
+        embed = discord.Embed(description=f'**Prompt:** {prompt} \n **Revised Prompt:** {revised_prompt} \n**Style:** {style} \n**Quality:** {quality}')
+        file = discord.File(io.BytesIO(image_data), filename='image.png')
+        embed.set_image(url="attachment://image.png")
+        embed.set_footer(text=f'Requested by {nickname}', icon_url=user['avatar'])
+
+        # add buttons 
+        favbutton = FavoriteButton(user)
+        button2 = Button(label="Website", style=discord.ButtonStyle.link, url="https://google.com/")
+        view = View()
+        view.add_item(favbutton)
+        view.add_item(button2)
+
+        # respond to channel and user with image embed
+        message = await interaction.followup.send(
+            content=f"Here is your image {user['mention']}!", 
+            embed=embed,
+            file=file,
+            view=view,
+            ephemeral=False
+            )
+        
+        image_url = message.embeds[0].image.url
+
+        userDict = {
+            'id': user['id'],
+            'name': nickname,
+            'avatar': user['avatar'].url
+        }
+
+        dream_id = await store_request(userDict, prompt, quality, style, image_url, model='Dalle-3', negativePrompt=None, imagination=None)
+
+        new_favbutton = FavoriteButton(dream_id, label="Favorite")
+        new_view = View()
+        new_view.add_item(new_favbutton)
+        new_view.add_item(button2)  # the other button you originally had
+
+        await message.edit(view=new_view)
+
+##################################################################
+################# DREAM LEADER ##################################
+##################################################################
 @bot.tree.command(name='dreamleader', description='Get the leaderboard for image generation.')
+@app_commands.checks.has_role("dreamer")  # Restrict to users with the role
 async def dreamleader(interaction: discord.Interaction):
     # grab user info
     user = getUserInfo(interaction)
@@ -200,6 +296,8 @@ async def dreamleader(interaction: discord.Interaction):
     except Exception as e:
         await interaction.followup.send(content=f"{user['mention']}, there was an error processing your request. Please try again.", ephemeral=True)
         raise e
+    
+
 
 ### Command Tree Sync ###
 @bot.tree.command(name='dreamsync', description='Sync any new commands to discord')
