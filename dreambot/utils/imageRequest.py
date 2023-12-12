@@ -28,8 +28,11 @@ async def imageRequest(positivePrompt, negativePrompt, cfg, style, interaction):
                 "samples": 1,
                 "steps": 40,
                 }
+
     if style:
         payload["style_preset"] = style
+
+    print(f"Payload: {payload}")
 
     ### Make post async
     async with aiohttp.ClientSession() as session:
@@ -50,6 +53,7 @@ async def imageRequest(positivePrompt, negativePrompt, cfg, style, interaction):
                     await interaction.followup.send(content=f"You tried to be naughty... Pervert!", ephemeral=False)
             # for all other errors not worth erroring to user differently, just logging different
             elif response.status != 200:
+                print(f"Error: {response.status} - {error_content}")
                 await interaction.followup.send(content=f"There was an error from the Stability API.", ephemeral=True)
             else:
                 # get raw data from response
