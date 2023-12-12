@@ -236,7 +236,7 @@ async def dream(interaction: discord.Interaction,
             'avatar': user['avatar'].url
         }
 
-        dream_id = await store_request(userDict, prompt, style, image_url, model='Dalle-3', negativePrompt=None, imagination=None, quality=quality)
+        dream_id = await store_request(userDict, prompt, style, image_url, model='Dalle-3', negativePrompt=None, imagination=None, quality=quality, revised_prompt=revised_prompt)
 
         new_favbutton = FavoriteButton(dream_id, label="Favorite")
         new_view = View()

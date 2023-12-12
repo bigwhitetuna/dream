@@ -124,6 +124,8 @@ class CreateDream(BaseModel):
     user_name: str
     user_avatar: str
     model: str
+    quality: Optional[str] = None
+    revised_prompt: Optional[str] = None
 
 
 # model used for getting leaderboard data
@@ -164,7 +166,9 @@ async def create_dream(dream: CreateDream, db: AsyncSession = Depends(get_db)):
                 imagination=dream.imagination,
                 style=dream.style,
                 image_url=dream.image_url,
-                model=dream.model
+                model=dream.model,
+                quality=dream.quality,
+                revised_prompt=dream.revised_prompt
             )
             db.add(new_dream)
 
