@@ -12,4 +12,5 @@ class Dream(Base):
     imagination = Column(Integer)
     style = Column(String)
     image_url = Column(String)
+    model = Column(String)
     timestamp = Column(DateTime, default=func.now())

@@ -39,8 +39,8 @@ async def on_ready():
     print(f'\nDream bot is up and running!\n')
     # uncomment if running for first time, will sync commands. 
     # do not run every time during development, only when NEW commands are added, not when commands are edited (those work with no sync). 
-    await bot.tree.sync()
-    logging.info('Synced commands')
+    # await bot.tree.sync()
+    # logging.info('Synced commands')
 
 @bot.event
 async def on_app_command_error(interaction: discord.Interaction, error: discord.app_commands.AppCommandError):
@@ -127,7 +127,7 @@ async def dream(interaction: discord.Interaction,
     #only send response if image data is available
     if image_data:            
         # create the embed from the response
-        embed = discord.Embed(description=f'**Prompt:** {prompt} \n **Negative Prompt:** {negativePrompt} \n**Imagination #:** {cfg} \n**Style:** {style}')
+        embed = discord.Embed(description=f'**Prompt:** {prompt} \n **Negative Prompt:** {negativePrompt} \n**Imagination #:** {cfg} \n**Style:** {style} \n**Model:** Stable Diffusion')
         file = discord.File(io.BytesIO(image_data), filename='image.png')
         embed.set_image(url="attachment://image.png")
         embed.set_footer(text=f'Requested by {nickname}', icon_url=user['avatar'])
@@ -207,7 +207,7 @@ async def dream(interaction: discord.Interaction,
     
     if image_data:
         # create the embed from the response
-        embed = discord.Embed(description=f'**Prompt:** {prompt} \n **Revised Prompt:** {revised_prompt} \n**Style:** {style} \n**Quality:** {quality}')
+        embed = discord.Embed(description=f'**Prompt:** {prompt} \n **Revised Prompt:** {revised_prompt} \n**Style:** {style} \n**Quality:** {quality} \n**Model:** Dalle-3')
         file = discord.File(io.BytesIO(image_data), filename='image.png')
         embed.set_image(url="attachment://image.png")
         embed.set_footer(text=f'Requested by {nickname}', icon_url=user['avatar'])
@@ -236,7 +236,7 @@ async def dream(interaction: discord.Interaction,
             'avatar': user['avatar'].url
         }
 
-        dream_id = await store_request(userDict, prompt, quality, style, image_url, model='Dalle-3', negativePrompt=None, imagination=None)
+        dream_id = await store_request(userDict, prompt, style, image_url, model='Dalle-3', negativePrompt=None, imagination=None, quality=quality)
 
         new_favbutton = FavoriteButton(dream_id, label="Favorite")
         new_view = View()
