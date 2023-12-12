@@ -39,8 +39,8 @@ async def on_ready():
     print(f'\nDream bot is up and running!\n')
     # uncomment if running for first time, will sync commands. 
     # do not run every time during development, only when NEW commands are added, not when commands are edited (those work with no sync). 
-    # await bot.tree.sync()
-    # logging.info('Synced commands')
+    await bot.tree.sync()
+    logging.info('Synced commands')
 
 @bot.event
 async def on_app_command_error(interaction: discord.Interaction, error: discord.app_commands.AppCommandError):
